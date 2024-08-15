@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import requests
 import os
+import io
 
 
 class Demotivator:
@@ -8,7 +9,7 @@ class Demotivator:
         self._top_text = top_text
         self._bottom_text = bottom_text
 
-    def create(self, file: str, watermark=None, result_filename='demresult.jpg',
+    def create(self, file, watermark=None, result_filename='demresult.jpg',
                font_color='white', fill_color='black',
                font_name='times.ttf', top_size=80, bottom_size=60,
                arrange=False, use_url=False, delete_file=False) \
@@ -28,7 +29,7 @@ class Demotivator:
         """
 
         if arrange:
-            user_img = Image.open(file).convert("RGBA")
+            user_img = Image.open(io.BytesIO(file)).convert("RGBA")
             (width, height) = user_img.size
             img = Image.new('RGB', (width + 250, height + 260), color=fill_color)
             img_border = Image.new('RGB', (width + 10, height + 10), color='#000000')
@@ -40,7 +41,7 @@ class Demotivator:
             img = Image.new('RGB', (1280, 1024), color=fill_color)
             img_border = Image.new('RGB', (1060, 720), color='#000000')
             border = ImageOps.expand(img_border, border=2, fill='#ffffff')
-            user_img = Image.open(file).convert("RGBA").resize((1050, 710))
+            user_img = Image.open(io.BytesIO(file)).convert("RGBA").resize((1050, 710))
             (width, height) = user_img.size
             img.paste(border, (111, 96))
             img.paste(user_img, (118, 103))
@@ -92,9 +93,8 @@ class Demotivator:
             idraw.text((((width + 729) - size_2[0]) / 2, ((height - 192) - size_2[1])),
                        watermark.lower(), font=font_2)
 
-        img.save(result_filename)
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='PNG')
 
-        if delete_file:
-            os.remove(file)
 
-        return True
+        return img_byte_arr
